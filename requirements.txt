@@ -3,11 +3,4 @@ tf-keras==2.15.1
 pybullet 
 gymnasium 
 numpy
-sounddevice 
-soundfile  
-ollama
-langgraph 
-langchain  
 matplotlib
-requests
-ollama

@@ -1,114 +1,173 @@
 # RL Agent 1
 
-## 0️⃣ What Are We Solving? (Brief, Precise)
+## Overview
 
-### Problem Statement
-Build a reinforcement learning agent that can understand natural language commands from an LLM and execute object manipulation tasks in a simulated environment.
+A reinforcement learning agent that learns to manipulate objects in a PyBullet simulation environment using Proximal Policy Optimization (PPO).
 
-## Step 1: RL Agent with LLM Integration
+### What It Does
+- Trains a robot manipulator to grab and place objects at target positions
+- Uses PyBullet for physics simulation
+- Implements PPO algorithm with TensorFlow/Keras
+- Provides real-time training visualization
 
-### Overview
-- Build an RL agent using PyBullet simulation and TensorFlow
-- Environment contains a small object and a simple robot
-- Train the robot to grab the object and place it on the left or right side based on commands received from an LLM
-- LLM integration: Gemma and FunctionGemma
+## Quick Start
 
-### Components
-1. **Simulation Environment (PyBullet)**
-   - Simple robot manipulator
-   - Small object to be manipulated
-   - Left and right placement zones
+### Setup
 
-2. **RL Agent (TensorFlow)**
-   - Deep reinforcement learning model
-   - Trained to perform object grasping and placement
-   - Responds to directional commands (left/right)
-
-3. **LLM Integration**
-   - Gemma: Natural language understanding
-   - FunctionGemma: Function calling for command interpretation
-   - Converts natural language commands to actionable instructions for the RL agent
-
-## How to Start Training
-
-### Prerequisites
-1. Install dependencies:
+1. **Run the setup script:**
    ```bash
+   chmod +x setup.sh
+   ./setup.sh
+   ```
+
+2. **Activate the virtual environment:**
+   ```bash
+   source .venv/bin/activate
+   ```
+
+3. **Start training:**
+   ```bash
+   cd src
+   python train.py
+   ```
+
+### Manual Setup (Alternative)
+
+If you prefer to set up manually:
+
+1. **Create virtual environment:**
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   pip install --upgrade pip
    pip install -r requirements.txt
    ```
-
-2. (Optional) If using LLM features, ensure Ollama is installed and running:
+   
+   Note: On macOS, you may need to install pybullet with:
    ```bash
-   # Install Ollama from https://ollama.ai
-   # Pull required models:
-   ollama pull gemma2:2b
-   ollama pull functiongemma
+   CFLAGS="-Dfdopen=fdopen" CPPFLAGS="-Dfdopen=fdopen" pip install pybullet
    ```
 
-### Training the Agent
+## Training
 
-Navigate to the project root and run:
+### Basic Usage
 
 ```bash
 cd src
 python train.py
 ```
 
-#### Training Options
+### Training Options
 
-**Basic training with visualization:**
+**With visualization (default):**
 ```bash
 python train.py --episodes 500
 ```
 
-**Training without GUI (faster):**
+**Without GUI (faster training):**
 ```bash
 python train.py --episodes 500 --no-gui
 ```
 
-**Training with custom settings:**
+**Custom training settings:**
 ```bash
-python train.py --episodes 1000 --save-interval 50 --llm-probability 0.7
+python train.py --episodes 1000 --save-interval 50 --batch-size 128
 ```
 
-**Training without LLM (random positions only):**
-```bash
-python train.py --episodes 500 --no-llm
-```
+### Command Line Arguments
 
-#### Command Line Arguments
+| Argument | Description | Default |
+|----------|-------------|---------|
+| `--episodes N` | Number of training episodes | 500 |
+| `--batch-size N` | Batch size for training | 64 |
+| `--no-gui` | Disable PyBullet GUI (faster) | False |
+| `--save-interval N` | Save model every N episodes | 50 |
 
-- `--episodes N`: Number of training episodes (default: 500)
-- `--batch-size N`: Batch size for training (default: 64)
-- `--no-gui`: Disable PyBullet GUI for faster training
-- `--save-interval N`: Save model every N episodes (default: 50)
-- `--no-llm`: Disable LLM command generation, use random positions
-- `--llm-probability FLOAT`: Probability of using LLM command per episode (0.0-1.0, default: 0.7)
+### Training Output
 
-### What You'll See
+During training, you'll see:
 
-1. **PyBullet Window**: Real-time visualization of the robot and object during training (if GUI enabled)
-2. **Metrics Plot**: Four live-updating plots showing:
+1. **PyBullet Window** (if GUI enabled): Real-time visualization of the robot and object
+2. **Metrics Plot**: Four live-updating plots:
    - Episode Rewards (with moving average)
    - Distance to Target
    - Training Losses (Actor and Critic)
    - Episode Length
-
-3. **Console Output**: Training progress with:
+3. **Console Output**: Progress updates every 10 episodes with:
    - Average rewards and episode lengths
    - Distance to target metrics
    - Training losses
-   - LLM commands being used (if enabled)
 
 ### Model Saving
 
 Models are automatically saved:
-- Every N episodes (based on `--save-interval`)
-- Final model saved as `models/ppo_final` at the end of training
+- Every N episodes (based on `--save-interval`) to `models/ppo_episode_N_actor.h5` and `models/ppo_episode_N_critic.h5`
+- Final model saved as `models/ppo_final_actor.h5` and `models/ppo_final_critic.h5` at the end of training
 
-### Running Tests
+## Inference
 
-Test the LLM integration:
+After training, test your model:
+
+### Basic Inference
 ```bash
-python tests/test_llm_integration.py
+cd src
+python inference.py --model models/ppo_final
 ```
+This will use a random target position.
+
+### Specify Target Position
+```bash
+python inference.py --model models/ppo_final --target-x 0.4 --target-y 0.2 --target-z 0.5
+```
+
+### Inference Options
+
+| Argument | Description | Default |
+|----------|-------------|---------|
+| `--model PATH` | Path to trained model | `models/ppo_final` |
+| `--no-gui` | Disable PyBullet GUI | False |
+| `--target-x FLOAT` | Target X position | Random |
+| `--target-y FLOAT` | Target Y position | Random |
+| `--target-z FLOAT` | Target Z position | Random |
+
+## Project Structure
+
+```
+rl_agent_1/
+├── src/
+│   ├── env.py          # PyBullet environment
+│   ├── ppo.py           # PPO agent implementation
+│   ├── train.py         # Training script
+│   └── inference.py     # Inference script
+├── models/              # Saved model weights
+├── requirements.txt     # Python dependencies
+├── setup.sh             # Setup script
+└── README.md            # This file
+```
+
+## Requirements
+
+- Python 3.8+
+- TensorFlow 2.15
+- PyBullet
+- Gymnasium
+- NumPy
+- Matplotlib
+
+## Troubleshooting
+
+### macOS zlib Issue
+If you encounter zlib errors on macOS when installing pybullet:
+```bash
+CFLAGS="-Dfdopen=fdopen" CPPFLAGS="-Dfdopen=fdopen" pip install pybullet
+```
+
+### PyBullet GUI Not Showing
+If the GUI window doesn't appear, try:
+- Running with `--no-gui` flag for headless mode
+- Checking your display settings
+- Using a remote desktop solution if on a headless server

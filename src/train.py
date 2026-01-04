@@ -9,7 +9,6 @@ import tensorflow as tf
 
 from env import RobotObjectEnv
 from ppo import PPOAgent
-from llm import get_target_position, generate_training_command
 
 
 class TrainingMetrics:
@@ -97,7 +96,7 @@ class TrainingMetrics:
         plt.pause(0.001)
 
 
-def collect_trajectory(env, agent, max_steps=200, command=None, use_llm=True):
+def collect_trajectory(env, agent, max_steps=200):
     states = []
     actions = []
     rewards = []
@@ -107,17 +106,16 @@ def collect_trajectory(env, agent, max_steps=200, command=None, use_llm=True):
     
     import pybullet as p
     
-    if command is None:
-        command = generate_training_command(0, use_llm=use_llm)
-    
     workspace_bounds = env.get_workspace_bounds()
     
-    target_position = get_target_position(
-        command, 
-        workspace_bounds,
-        robot_position=None,
-        object_position=None
-    )
+    x_min, x_max = workspace_bounds['x']
+    y_min, y_max = workspace_bounds['y']
+    z_min, z_max = workspace_bounds['z']
+    target_position = [
+        np.random.uniform(x_min, x_max),
+        np.random.uniform(y_min, y_max),
+        np.random.uniform(z_min, z_max)
+    ]
     
     state, info = env.reset(target_position=target_position)
     episode_reward = 0
@@ -171,7 +169,7 @@ def collect_trajectory(env, agent, max_steps=200, command=None, use_llm=True):
     }
 
 
-def train(episodes=500, batch_size=64, gui=True, save_interval=50, use_llm=True, llm_probability=0.7):
+def train(episodes=500, batch_size=64, gui=True, save_interval=50):
     env = RobotObjectEnv(gui=gui)
     
     state_dim = env.observation_space.shape[0]
@@ -185,14 +183,11 @@ def train(episodes=500, batch_size=64, gui=True, save_interval=50, use_llm=True,
     
     print("Starting training...")
     print(f"State dimension: {state_dim}, Action dimension: {action_dim}")
-    print(f"Using LLM commands: {use_llm} (probability: {llm_probability})")
+    print(f"Using random target positions")
     print("-" * 60)
     
     for episode in range(episodes):
-        import random
-        use_llm_for_episode = use_llm and random.random() < llm_probability
-        command = generate_training_command(episode, use_llm=use_llm_for_episode) if use_llm_for_episode else None
-        trajectory = collect_trajectory(env, agent, command=command, use_llm=use_llm_for_episode)
+        trajectory = collect_trajectory(env, agent)
         
         states = trajectory['states']
         actions = trajectory['actions']
@@ -218,8 +213,6 @@ def train(episodes=500, batch_size=64, gui=True, save_interval=50, use_llm=True,
             avg_distance = np.mean(list(metrics.distances_to_target)[-10:])
             
             print(f"Episode {episode + 1}/{episodes}")
-            if command:
-                print(f"  Command: {command}")
             print(f"  Avg Reward (last 10): {avg_reward:.2f}")
             print(f"  Avg Length (last 10): {avg_length:.1f}")
             print(f"  Avg Distance to Target: {avg_distance:.3f}")
@@ -245,8 +238,6 @@ if __name__ == "__main__":
     parser.add_argument('--batch-size', type=int, default=64, help='Batch size for training')
     parser.add_argument('--no-gui', action='store_true', help='Disable PyBullet GUI')
     parser.add_argument('--save-interval', type=int, default=50, help='Save model every N episodes')
-    parser.add_argument('--no-llm', action='store_true', help='Disable LLM command generation (use random positions)')
-    parser.add_argument('--llm-probability', type=float, default=0.7, help='Probability of using LLM command per episode (0.0-1.0)')
     
     args = parser.parse_args()
     
@@ -254,8 +245,6 @@ if __name__ == "__main__":
         episodes=args.episodes,
         batch_size=args.batch_size,
         gui=not args.no_gui,
-        save_interval=args.save_interval,
-        use_llm=not args.no_llm,
-        llm_probability=args.llm_probability
+        save_interval=args.save_interval
     )
 
