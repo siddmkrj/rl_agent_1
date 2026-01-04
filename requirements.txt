@@ -1,4 +1,6 @@
 tensorflow==2.15
+tensorflow-probability
+tf-keras<2.16
 pybullet 
 gymnasium 
 numpy
