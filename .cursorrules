@@ -1,0 +1,17 @@
+# Cursor Rules
+
+## Project Structure
+- `src/` folder is where all code should be written
+- Keep README.md updated with project progress and changes
+
+## File Management
+- Do not create or delete files without asking the user first
+- Always confirm before making structural changes to the project
+
+## Code Quality
+- Follow clean code principles
+- Do not write comments in code
+- Code should be simple, clean, and self-explanatory
+- Variable names and function names should be descriptive and self-explanatory
+- Prefer clarity over brevity in naming
+
