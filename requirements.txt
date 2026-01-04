@@ -1,2 +1,5 @@
+tensorflow==2.15
 numpy
 matplotlib
+gymnasium
+gymnasium[classic-control]
