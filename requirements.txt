@@ -1,4 +1,4 @@
-tensorflow==2.15
+tensorflow==2.18
 tensorflow-probability
 tf-keras<2.16
 pybullet 
