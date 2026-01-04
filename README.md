@@ -172,3 +172,120 @@ Decide:
   }
 }
 ```
+
+## 6️⃣ PyBullet Environment (Baseline)
+
+### Minimal Environment
+
+```python
+class RobotEnv:
+    def __init__(self):
+        self.physics = p.connect(p.DIRECT)
+        p.setGravity(0,0,-9.8)
+
+    def reset(self):
+        # load robot + object
+        return obs
+
+    def step(self, action):
+        # apply joint deltas
+        # compute reward
+        return obs, reward, done, info
+```
+
+### Observation Vector
+
+```
+[ joint_pos (7),
+  joint_vel (7),
+  ee_xyz (3),
+  object_xyz (3),
+  gripper_state (1) ]
+```
+
+### Action Vector
+
+```json
+{
+  "name": "select_skill",
+  "arguments": {
+    "skill": "pick_and_place",
+    "confidence": 0.82
+  }
+}
+```
+
+## 7️⃣ PPO in TensorFlow
+
+### Policy Network
+
+```python
+def policy_net(obs_dim, act_dim):
+    inp = tf.keras.Input(shape=(obs_dim,))
+    x = tf.keras.layers.Dense(256, activation='relu')(inp)
+    x = tf.keras.layers.Dense(256, activation='relu')(x)
+    mean = tf.keras.layers.Dense(act_dim)(x)
+    log_std = tf.Variable(-0.5 * tf.ones(act_dim))
+    return tf.keras.Model(inp, mean), log_std
+```
+
+### Value Network
+
+```python
+def value_net(obs_dim):
+    inp = tf.keras.Input(shape=(obs_dim,))
+    x = tf.keras.layers.Dense(256, activation='relu')(inp)
+    x = tf.keras.layers.Dense(256, activation='relu')(x)
+    value = tf.keras.layers.Dense(1)(x)
+    return tf.keras.Model(inp, value)
+```
+
+## 8️⃣ Training Loop
+
+```python
+for episode in range(episodes):
+    obs = env.reset()
+    traj = []
+
+    while not done:
+        action = policy(obs)
+        next_obs, reward, done, info = env.step(action)
+        traj.append((obs, action, reward))
+        obs = next_obs
+
+    update_ppo(traj)
+```
+
+**Use:**
+- Small batch sizes
+- Fewer epochs
+- No parallel envs (CPU)
+
+## 9️⃣ Metrics
+
+### Core Metrics
+
+| Metric | Meaning |
+|--------|---------|
+| Success Rate | Task completion |
+| Episode Length | Efficiency |
+| Reward Mean | Learning signal |
+| Collision Count | Safety |
+| Action Smoothness | Sim-to-real readiness |
+
+### Logging
+
+```python
+metrics = {
+  "success": success,
+  "reward": ep_reward,
+  "steps": steps
+}
+```
+
+### Plot
+
+```python
+plt.plot(reward_history)
+plt.title("Training Reward")
+```
