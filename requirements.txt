@@ -8,3 +8,5 @@ ollama
 langgraph 
 langchain  
 matplotlib
+requests
+ollama

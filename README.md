@@ -88,3 +88,15 @@ State / Reward / Metrics
 **TensorFlow compatibility:**
 - TensorFlow 2.15 requires Python 3.9-3.11
 - Python 3.12+ requires TensorFlow 2.16+
+
+## 3️⃣ Define Components
+
+| Component | Role | Function |
+|-----------|------|----------|
+| FunctionGemma | Intent parsing, capability reasoning | Parses user intent and reasons about agent capabilities |
+| Agent Core | Decide: act vs respond vs plan | Core decision-making logic for action selection |
+| Skill Interface | Abstract robot abilities | Provides abstraction layer for robot skills |
+| RL Policy (PPO) | Continuous motor control | Implements PPO algorithm for continuous control |
+| PyBullet Env | Physics + state + reward | Physics simulation environment with state and reward computation |
+| Metrics Layer | Success, efficiency, stability | Tracks performance metrics (success, efficiency, stability) |
+| (Later) LangGraph | Agent memory & tool routing | Future integration for agent memory and tool routing |
