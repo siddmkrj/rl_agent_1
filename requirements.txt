@@ -1,0 +1,10 @@
+tensorflow==2.15
+pybullet 
+gymnasium 
+numpy
+sounddevice 
+soundfile  
+ollama
+langgraph 
+langchain  
+matplotlib
