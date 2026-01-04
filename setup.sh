@@ -7,23 +7,23 @@ set -e
 echo "🚀 Setting up RL Agent 1..."
 echo ""
 
-# Check for Python 3.8+
-if ! command -v python3 &> /dev/null; then
-    echo "❌ Error: python3 not found. Please install Python 3.8 or higher."
+# Check for Python 3.11
+if ! command -v python3.11 &> /dev/null; then
+    echo "❌ Error: python3.11 not found. Please install Python 3.11."
     exit 1
 fi
 
-PYTHON_VERSION=$(python3 --version 2>&1 | awk '{print $2}' | cut -d. -f1,2)
+PYTHON_VERSION=$(python3.11 --version 2>&1 | awk '{print $2}')
 echo "✓ Found Python ${PYTHON_VERSION}"
 
 # Create virtual environment
 echo ""
-echo "📦 Creating virtual environment..."
+echo "📦 Creating virtual environment with Python 3.11..."
 if [ -d ".venv" ]; then
     echo "⚠️  Virtual environment already exists. Removing old one..."
     rm -rf .venv
 fi
-python3 -m venv .venv
+python3.11 -m venv .venv
 
 # Activate virtual environment
 echo "🔧 Activating virtual environment..."
