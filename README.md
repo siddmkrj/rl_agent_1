@@ -100,3 +100,75 @@ State / Reward / Metrics
 | PyBullet Env | Physics + state + reward | Physics simulation environment with state and reward computation |
 | Metrics Layer | Success, efficiency, stability | Tracks performance metrics (success, efficiency, stability) |
 | (Later) LangGraph | Agent memory & tool routing | Future integration for agent memory and tool routing |
+
+## 4️⃣ Capability-Aware Agent
+
+The robot knows what it can do.
+
+### Capability Schema
+
+```python
+CAPABILITIES = {
+    "move_end_effector": True,
+    "grasp": True,
+    "stack_objects": False,
+    "navigate": False
+}
+```
+
+### Example Reasoning
+
+**User:**
+
+"Stack three cubes"
+
+**Agent:**
+
+"I can grasp and place, but stacking is unstable. I can attempt two cubes. Should I proceed?"
+
+This is not hardcoded — it's LLM + capability introspection.
+
+## 5️⃣ FunctionGemma: Intent → Skill
+
+### Function Definition
+
+```python
+functions = [
+  {
+    "name": "select_skill",
+    "description": "Select robot skill",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "skill": {"type": "string"},
+        "confidence": {"type": "number"}
+      }
+    }
+  }
+]
+```
+
+### Prompt Template
+
+```
+You are a robot.
+These are your capabilities: {CAPABILITIES}
+User command: {COMMAND}
+
+Decide:
+- respond_only
+- act
+- ask_clarification
+```
+
+### Output Example
+
+```json
+{
+  "name": "select_skill",
+  "arguments": {
+    "skill": "pick_and_place",
+    "confidence": 0.82
+  }
+}
+```
