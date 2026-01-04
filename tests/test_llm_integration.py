@@ -4,7 +4,7 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 try:
-    from llm_commander import get_target_position, generate_training_command
+    from llm import get_target_position, generate_training_command, calculate_target_position
     from env import RobotObjectEnv
     OLLAMA_AVAILABLE = True
 except ImportError as e:
@@ -113,8 +113,6 @@ def test_directional_parsing():
         'z': (0.4, 0.6)
     }
     
-    from llm_commander import _parse_directional_command
-    
     test_cases = [
         ("left", "Should be on left side (negative y)"),
         ("right", "Should be on right side (positive y)"),
@@ -125,8 +123,8 @@ def test_directional_parsing():
     ]
     
     for command, description in test_cases:
-        result = _parse_directional_command(command, workspace_bounds, [0, 0, 0.5], [0.3, 0.2, 0.5])
-        x, y, z = result
+        result = calculate_target_position(command, workspace_bounds, [0, 0, 0.5], [0.3, 0.2, 0.5])
+        x, y, z = result["x"], result["y"], result["z"]
         
         x_valid = workspace_bounds['x'][0] <= x <= workspace_bounds['x'][1]
         y_valid = workspace_bounds['y'][0] <= y <= workspace_bounds['y'][1]

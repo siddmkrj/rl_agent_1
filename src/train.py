@@ -6,11 +6,10 @@ import argparse
 import os
 import sys
 import tensorflow as tf
-import tensorflow_probability as tfp
 
 from env import RobotObjectEnv
 from ppo import PPOAgent
-from llm_commander import get_target_position, generate_training_command
+from llm import get_target_position, generate_training_command
 
 
 class TrainingMetrics:
@@ -131,7 +130,8 @@ def collect_trajectory(env, agent, max_steps=200, command=None, use_llm=True):
         value = agent.get_value(state)
         
         mean, std = agent.actor(np.expand_dims(state, axis=0))
-        dist = tfp.distributions.Normal(mean, std)
+        from ppo import NormalDistribution
+        dist = NormalDistribution(mean, std)
         action_tensor = tf.expand_dims(tf.constant(action, dtype=tf.float32), axis=0)
         log_prob = tf.reduce_sum(dist.log_prob(action_tensor), axis=1).numpy()[0]
         

@@ -1,6 +1,28 @@
 import tensorflow as tf
 import numpy as np
-import tensorflow_probability as tfp
+
+
+class NormalDistribution:
+    def __init__(self, mean, std):
+        self.mean = mean
+        self.std = std
+    
+    def sample(self):
+        epsilon = tf.random.normal(tf.shape(self.mean))
+        return self.mean + self.std * epsilon
+    
+    def log_prob(self, value):
+        var = tf.square(self.std)
+        log_std = tf.math.log(self.std + 1e-8)
+        return -0.5 * (
+            tf.square((value - self.mean) / (self.std + 1e-8)) +
+            2 * log_std +
+            tf.math.log(2 * np.pi)
+        )
+    
+    def entropy(self):
+        return 0.5 * tf.math.log(2 * np.pi * np.e * tf.square(self.std) + 1e-8)
+
 
 class PPOAgent:
     def __init__(self, state_dim, action_dim, learning_rate=3e-4, gamma=0.99, 
@@ -26,7 +48,7 @@ class PPOAgent:
         std = std + 1e-5
         
         model = tf.keras.Model(inputs=inputs, outputs=[mean, std])
-        model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate))
+        model.compile(optimizer=tf.keras.optimizers.legacy.Adam(learning_rate=learning_rate))
         
         return model
     
@@ -38,7 +60,7 @@ class PPOAgent:
         value = tf.keras.layers.Dense(1)(x)
         
         model = tf.keras.Model(inputs=inputs, outputs=value)
-        model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate))
+        model.compile(optimizer=tf.keras.optimizers.legacy.Adam(learning_rate=learning_rate))
         
         return model
     
@@ -47,7 +69,7 @@ class PPOAgent:
         mean, std = self.actor(state)
         
         if training:
-            dist = tfp.distributions.Normal(mean, std)
+            dist = NormalDistribution(mean, std)
             action = dist.sample()
             action = tf.clip_by_value(action, -1.0, 1.0)
         else:
@@ -87,7 +109,7 @@ class PPOAgent:
         
         with tf.GradientTape() as tape:
             mean, std = self.actor(states, training=True)
-            dist = tfp.distributions.Normal(mean, std)
+            dist = NormalDistribution(mean, std)
             log_probs = dist.log_prob(actions)
             log_probs = tf.reduce_sum(log_probs, axis=1)
             
@@ -118,4 +140,3 @@ class PPOAgent:
     def load(self, filepath):
         self.actor.load_weights(f"{filepath}_actor.h5")
         self.critic.load_weights(f"{filepath}_critic.h5")
-
